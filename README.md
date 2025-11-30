@@ -337,7 +337,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 👨‍💻 Author
 
-**Built by Arvind Kumar**
+**Built by Abhay Kumar Saini**
 
 - GitHub: [@abbhayy](https://github.com/abbhayy)
 - Repository: [pupu_ai](https://github.com/abbhayy/pupu_ai)
