@@ -339,11 +339,11 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 **Built by Arvind Kumar**
 
-- GitHub: [@akcthecpder200](https://github.com/akcthecoder200)
-- Repository: [Code-Copilot](https://github.com/akcthecoder200/Code-Copilot)
+- GitHub: [@abbhayy](https://github.com/abbhayy)
+- Repository: [pupu_ai](https://github.com/abbhayy/pupu_ai)
 
 ---
 
-**Last updated:** November 2025
+**Last updated:** January 2025
 
 **Need Help?** Open an issue on GitHub or contact the repository owner.
