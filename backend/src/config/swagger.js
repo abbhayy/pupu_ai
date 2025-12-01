@@ -8,7 +8,7 @@ const options = {
       version: '1.0.0',
       description: 'AI-powered code generation API using Gemini API',
       contact: {
-        name: 'Arvind Kumar',
+        name: 'Abhay kumar saini',
         url: 'https://github.com/akcthecoder200/GenerativeAI-Code-Copilot',
       },
     },

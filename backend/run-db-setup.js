@@ -1,6 +1,20 @@
 const { Sequelize } = require("sequelize");
 require("dotenv").config();
 
+// Ensure SSL is requested for Postgres cloud providers that require TLS.
+// PGSSLMODE is respected by node-postgres. We set it here so running the
+// setup script from the CLI uses SSL by default when a remote DATABASE_URL is used.
+if (!process.env.PGSSLMODE) {
+  process.env.PGSSLMODE = "require";
+}
+
+// If the remote server uses a self-signed certificate, disabling TLS
+// verification allows connecting; this is insecure for production.
+// Remove or set to '1' in production after providing proper CA.
+if (!process.env.NODE_TLS_REJECT_UNAUTHORIZED) {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+}
+
 async function setupDatabase() {
   // Detect dialect from DATABASE_URL
   const dbUrl = process.env.DATABASE_URL || "";
