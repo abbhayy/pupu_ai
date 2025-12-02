@@ -23,10 +23,11 @@ const sequelize = new Sequelize(databaseUrl, {
     acquire: 30000,
     idle: 10000
   },
-  dialectOptions: dialect === 'postgres' && process.env.NODE_ENV === 'production' ? {
+  // Enable SSL/TLS for Postgres in all environments (cloud providers require this)
+  dialectOptions: dialect === 'postgres' ? {
     ssl: {
       require: true,
-      rejectUnauthorized: false
+      rejectUnauthorized: false  // Allow self-signed certs; use proper CA in production
     }
   } : {}
 });

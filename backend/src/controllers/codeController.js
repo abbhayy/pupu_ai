@@ -70,9 +70,7 @@ exports.generate = [
   body('language')
     .notEmpty().withMessage('Language is required')
     .trim(),
-  body('userId')
-    .optional()
-    .isInt().withMessage('User ID must be an integer'),
+
 
   // Handler
   async (req, res, next) => {
@@ -88,7 +86,9 @@ exports.generate = [
         });
       }
 
-      const { prompt, language, userId } = req.body;
+      const { prompt, language } = req.body;
+      // Use authenticated user from middleware
+      const userId = req.user.userId;
 
       // Find language in database
       const languageRecord = await Language.findOne({
@@ -100,17 +100,6 @@ exports.generate = [
           success: false,
           error: `Language "${language}" is not supported. Please choose from available languages.`
         });
-      }
-
-      // Verify user exists if userId provided
-      if (userId) {
-        const user = await User.findByPk(userId);
-        if (!user) {
-          return res.status(400).json({
-            success: false,
-            error: 'Invalid user ID'
-          });
-        }
       }
 
       // Generate code using AI
@@ -255,13 +244,12 @@ exports.getHistory = [
       const page = req.query.page || 1;
       const limit = req.query.limit || 10;
       const offset = (page - 1) * limit;
-      const { language, userId } = req.query;
+      const { language } = req.query;
+      // Get authenticated user's ID from middleware
+      const userId = req.user.userId;
 
-      // Build where clause for filtering
-      const where = {};
-      if (userId) {
-        where.userId = userId;
-      }
+      // Build where clause - always filter by authenticated user
+      const where = { userId };
 
       // Build include clause for language filtering
       const include = [
