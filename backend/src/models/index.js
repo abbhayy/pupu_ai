@@ -9,30 +9,36 @@ const Language = LanguageModel(sequelize);
 const Generation = GenerationModel(sequelize);
 
 // Define associations
+try {
+  // Language has many Generations
+  Language.hasMany(Generation, {
+    foreignKey: 'languageId',
+    as: 'generations',
+    onDelete: 'CASCADE'
+  });
 
-// Language has many Generations
-Language.hasMany(Generation, {
-  foreignKey: 'languageId',
-  as: 'generations',
-  onDelete: 'CASCADE'
-});
+  Generation.belongsTo(Language, {
+    foreignKey: 'languageId',
+    as: 'language'
+  });
 
-Generation.belongsTo(Language, {
-  foreignKey: 'languageId',
-  as: 'language'
-});
+  // User has many Generations (optional)
+  User.hasMany(Generation, {
+    foreignKey: 'userId',
+    as: 'generations',
+    onDelete: 'SET NULL'
+  });
 
-// User has many Generations (optional)
-User.hasMany(Generation, {
-  foreignKey: 'userId',
-  as: 'generations',
-  onDelete: 'SET NULL'
-});
-
-Generation.belongsTo(User, {
-  foreignKey: 'userId',
-  as: 'user'
-});
+  Generation.belongsTo(User, {
+    foreignKey: 'userId',
+    as: 'user'
+  });
+  
+  console.log("✅ Database models and associations initialized");
+} catch (error) {
+  console.error("❌ Error initializing models:", error.message);
+  throw error;
+}
 
 module.exports = {
   sequelize,

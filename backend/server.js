@@ -6,6 +6,18 @@ try {
   // dotenv may not be installed in some deployment environments where env vars
   // are provided by the platform (e.g., Render). Fail silently.
 }
+
+// Global error handlers - must be set up early
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection:', reason);
+  process.exit(1);
+});
+
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
@@ -55,28 +67,79 @@ app.use("/api", apiRoutes);
 // Error handling middleware
 app.use(errorHandler);
 
-// Database connection and server start
+// Database connection and server start with retry logic
 const startServer = async () => {
-  try {
-    // Test database connection
-    await sequelize.authenticate();
-    console.log("✅ Database connection established successfully");
+  const MAX_RETRIES = 5;
+  const RETRY_DELAY = 2000; // 2 seconds
+  let retryCount = 0;
 
-    // Sync models (in development only)
-    if (process.env.NODE_ENV === "development") {
-      await sequelize.sync({ alter: false });
-      console.log("✅ Database models synchronized");
+  const connectDatabase = async () => {
+    try {
+      console.log(`🔄 Database connection attempt ${retryCount + 1}/${MAX_RETRIES}...`);
+      
+      // Test database connection
+      await sequelize.authenticate();
+      console.log("✅ Database connection established successfully");
+
+      // Sync models (in development only)
+      if (process.env.NODE_ENV === "development") {
+        await sequelize.sync({ alter: false });
+        console.log("✅ Database models synchronized");
+      }
+
+      return true;
+    } catch (error) {
+      retryCount++;
+      console.error(`❌ Database connection failed (attempt ${retryCount}/${MAX_RETRIES}):`, error.message);
+      
+      if (retryCount >= MAX_RETRIES) {
+        console.error("❌ Max retries reached. Unable to connect to database.");
+        return false;
+      }
+
+      console.log(`⏳ Retrying in ${RETRY_DELAY / 1000} seconds...`);
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      return connectDatabase();
+    }
+  };
+
+  try {
+    const dbConnected = await connectDatabase();
+    
+    if (!dbConnected) {
+      console.error("❌ Failed to establish database connection after retries. Exiting...");
+      process.exit(1);
     }
 
     // Start server
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📍 API endpoint: http://localhost:${PORT}/api`);
       console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
       console.log(`🏥 Health check: http://localhost:${PORT}/health`);
     });
+
+    // Graceful shutdown handlers
+    process.on("SIGTERM", () => {
+      console.log("📛 SIGTERM received - closing server gracefully...");
+      server.close(() => {
+        console.log("✅ Server closed");
+        sequelize.close();
+        process.exit(0);
+      });
+    });
+
+    process.on("SIGINT", () => {
+      console.log("📛 SIGINT received - closing server gracefully...");
+      server.close(() => {
+        console.log("✅ Server closed");
+        sequelize.close();
+        process.exit(0);
+      });
+    });
+
   } catch (error) {
-    console.error("❌ Unable to start server:", error);
+    console.error("❌ Unexpected error during server startup:", error);
     process.exit(1);
   }
 };

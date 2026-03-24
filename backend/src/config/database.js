@@ -20,15 +20,20 @@ const sequelize = new Sequelize(databaseUrl, {
   pool: {
     max: 5,
     min: 0,
-    acquire: 30000,
-    idle: 10000
+    acquire: 30000,  // Max time to acquire a connection from pool (30 seconds)
+    idle: 10000      // Idle timeout (10 seconds)
   },
+  // Connection timeout settings
+  connectTimeout: 30000,  // Max time to connect (30 seconds)
+  
   // Enable SSL/TLS for Postgres in all environments (cloud providers require this)
   dialectOptions: dialect === 'postgres' ? {
     ssl: {
       require: true,
       rejectUnauthorized: false  // Allow self-signed certs; use proper CA in production
-    }
+    },
+    // Reduce idle in transaction timeout for Render
+    idle_in_transaction_session_timeout: 30000
   } : {}
 });
 
